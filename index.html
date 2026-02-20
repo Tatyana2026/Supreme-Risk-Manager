@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; display: flex; justify-content: center; }
+        .card { background: #0f0f0f; border: 1px solid #222; border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { text-align: center; font-size: 18px; letter-spacing: 1px; margin-bottom: 20px; color: #fff; }
+        label { font-size: 12px; color: #888; margin-left: 5px; }
+        input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 12px; margin: 8px 0 15px; box-sizing: border-box; outline: none; }
+        button { width: 100%; background: #fff; color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .risk-meter { height: 6px; border-radius: 3px; background: #222; margin: 15px 0; overflow: hidden; display: none; }
+        .risk-bar { height: 100%; width: 0%; transition: 0.5s; }
+        #result { display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #222; }
+        .res-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        .res-val { font-weight: bold; color: #00ff88; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>SUPREME TRADING SUITE</h2>
+        <label>Депозит (USDT)</label>
+        <input type="number" id="balance" placeholder="1000">
+        <label>Риск на сделку (%)</label>
+        <input type="number" id="risk" placeholder="1">
+        <label>Вход / Стоп-лосс</label>
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="entry" placeholder="Вход">
+            <input type="number" id="stop" placeholder="Стоп">
+        </div>
+        <div class="risk-meter" id="meter"><div class="risk-bar" id="bar"></div></div>
+        <button onclick="calculate()">РАССЧИТАТЬ СДЕЛКУ</button>
+        <div id="result">
+            <div class="res-row"><span>Объем позиции:</span> <span class="res-val" id="resPos">0</span></div>
+            <div class="res-row"><span>Реком. плечо:</span> <span class="res-val" id="resLev" style="color:#fff">0</span></div>
+            <div class="res-row"><span>Потеря при стопе:</span> <span class="res-val" id="resLoss" style="color:#ff4444">0</span></div>
+        </div>
+    </div>
+    <script>
+        function calculate() {
+            const b = parseFloat(document.getElementById('balance').value);
+            const r = parseFloat(document.getElementById('risk').value);
+            const e = parseFloat(document.getElementById('entry').value);
+            const s = parseFloat(document.getElementById('stop').value);
+            if (b && r && e && s) {
+                const riskUsdt = b * (r / 100);
+                const diff = Math.abs(e - s) / e;
+                const posSize = riskUsdt / diff;
+                let lev = Math.floor(1 / (diff * 1.5));
+                lev = lev > 125 ? 125 : (lev < 1 ? 1 : lev);
+                document.getElementById('result').style.display = 'block';
+                document.getElementById('meter').style.display = 'block';
+                document.getElementById('resPos').innerText = posSize.toFixed(2) + ' USDT';
+                document.getElementById('resLev').innerText = lev + 'x';
+                document.getElementById('resLoss').innerText = riskUsdt.toFixed(2) + ' USDT';
+                const bar = document.getElementById('bar');
+                if (r <= 2) { bar.style.background = '#00ff88'; bar.style.width = '30%'; }
+                else if (r <= 5) { bar.style.background = '#ffcc00'; bar.style.width = '60%'; }
+                else { bar.style.background = '#ff4444'; bar.style.width = '100%'; }
+            }
+        }
+    </script>
+</body>
+</html>
