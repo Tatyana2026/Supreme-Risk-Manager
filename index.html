@@ -4,61 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; display: flex; justify-content: center; }
-        .card { background: #0f0f0f; border: 1px solid #222; border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { text-align: center; font-size: 18px; letter-spacing: 1px; margin-bottom: 20px; color: #fff; }
-        label { font-size: 12px; color: #888; margin-left: 5px; }
-        input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 12px; margin: 8px 0 15px; box-sizing: border-box; outline: none; }
-        button { width: 100%; background: #fff; color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .risk-meter { height: 6px; border-radius: 3px; background: #222; margin: 15px 0; overflow: hidden; display: none; }
-        .risk-bar { height: 100%; width: 0%; transition: 0.5s; }
-        #result { display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #222; }
-        .res-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
-        .res-val { font-weight: bold; color: #00ff88; }
+        body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 15px; display: flex; justify-content: center; margin: 0; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 24px; padding: 25px; width: 100%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
+        h2 { text-align: center; font-size: 20px; letter-spacing: 2px; margin-bottom: 25px; color: #fff; font-weight: 800; text-transform: uppercase; }
+        .input-group { margin-bottom: 15px; }
+        label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+        input { width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 14px; border-radius: 14px; box-sizing: border-box; outline: none; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: #444; background: #151515; }
+        .row { display: flex; gap: 12px; }
+        .risk-meter { height: 4px; background: #1a1a1a; border-radius: 2px; margin: 20px 0; overflow: hidden; }
+        #riskBar { height: 100%; width: 0%; transition: 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        button { width: 100%; padding: 16px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+        .btn-calc { background: #fff; color: #000; border: none; }
+        .btn-calc:active { transform: scale(0.97); }
+        .btn-share { background: transparent; border: 1px solid #333; color: #888; margin-top: 15px; font-size: 12px; }
+        #result { display: none; margin-top: 25px; padding: 20px; background: #111; border-radius: 18px; border: 1px solid #1a1a1a; }
+        .res-item { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: #aaa; }
+        .res-item b { color: #fff; font-size: 16px; }
+        .highlight { color: #00ff88 !important; }
+        .warning { color: #ff4444 !important; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>SUPREME TRADING SUITE</h2>
-        <label>Депозит (USDT)</label>
-        <input type="number" id="balance" placeholder="1000">
-        <label>Риск на сделку (%)</label>
-        <input type="number" id="risk" placeholder="1">
-        <label>Вход / Стоп-лосс</label>
-        <div style="display: flex; gap: 10px;">
-            <input type="number" id="entry" placeholder="Вход">
-            <input type="number" id="stop" placeholder="Стоп">
+        <h2>SUPREME SUITE 2.0</h2>
+        
+        <div class="input-group">
+            <label>Ваш баланс (USDT)</label>
+            <input type="number" id="balance" placeholder="1000" value="1000">
         </div>
-        <div class="risk-meter" id="meter"><div class="risk-bar" id="bar"></div></div>
-        <button onclick="calculate()">РАССЧИТАТЬ СДЕЛКУ</button>
+
+        <div class="row">
+            <div class="input-group" style="flex: 1;">
+                <label>Риск (%)</label>
+                <input type="number" id="risk" placeholder="1" value="1">
+            </div>
+            <div class="input-group" style="flex: 2;">
+                <label>Монета</label>
+                <input type="text" id="coin" placeholder="BTC/USDT" value="BTC/USDT">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-group" style="flex: 1;">
+                <label>Вход</label>
+                <input type="number" id="entry" placeholder="65000">
+            </div>
+            <div class="input-group" style="flex: 1;">
+                <label>Стоп-лосс</label>
+                <input type="number" id="stop" placeholder="64000">
+            </div>
+        </div>
+
+        <div class="risk-meter"><div id="riskBar"></div></div>
+        
+        <button class="btn-calc" onclick="calculate()">Рассчитать позицию</button>
+
         <div id="result">
-            <div class="res-row"><span>Объем позиции:</span> <span class="res-val" id="resPos">0</span></div>
-            <div class="res-row"><span>Реком. плечо:</span> <span class="res-val" id="resLev" style="color:#fff">0</span></div>
-            <div class="res-row"><span>Потеря при стопе:</span> <span class="res-val" id="resLoss" style="color:#ff4444">0</span></div>
+            <div class="res-item">Объем сделки: <b id="resPos">0</b></div>
+            <div class="res-item">Реком. плечо: <b id="resLev" class="highlight">0</b></div>
+            <div class="res-item">Риск в деньгах: <b id="resLoss" class="warning">0</b></div>
+            <div class="res-item">До стоп-лосса: <b id="resDist">0</b></div>
+            <button class="btn-share" onclick="share()">Скопировать план сделки</button>
         </div>
     </div>
+
     <script>
         function calculate() {
             const b = parseFloat(document.getElementById('balance').value);
             const r = parseFloat(document.getElementById('risk').value);
             const e = parseFloat(document.getElementById('entry').value);
             const s = parseFloat(document.getElementById('stop').value);
+            const bar = document.getElementById('riskBar');
+
             if (b && r && e && s) {
-                const riskUsdt = b * (r / 100);
-                const diff = Math.abs(e - s) / e;
-                const posSize = riskUsdt / diff;
-                let lev = Math.floor(1 / (diff * 1.5));
+                const riskAmount = b * (r / 100);
+                const dist = Math.abs(e - s) / e;
+                const posSize = riskAmount / dist;
+                let lev = Math.floor(1 / (dist * 1.5));
                 lev = lev > 125 ? 125 : (lev < 1 ? 1 : lev);
+
                 document.getElementById('result').style.display = 'block';
-                document.getElementById('meter').style.display = 'block';
-                document.getElementById('resPos').innerText = posSize.toFixed(2) + ' USDT';
+                document.getElementById('resPos').innerText = posSize.toFixed(0) + ' USDT';
                 document.getElementById('resLev').innerText = lev + 'x';
-                document.getElementById('resLoss').innerText = riskUsdt.toFixed(2) + ' USDT';
-                const bar = document.getElementById('bar');
-                if (r <= 2) { bar.style.background = '#00ff88'; bar.style.width = '30%'; }
-                else if (r <= 5) { bar.style.background = '#ffcc00'; bar.style.width = '60%'; }
-                else { bar.style.background = '#ff4444'; bar.style.width = '100%'; }
+                document.getElementById('resLoss').innerText = riskAmount.toFixed(2) + ' USDT';
+                document.getElementById('resDist').innerText = (dist * 100).toFixed(2) + '%';
+
+                // Управление шкалой риска
+                if (r <= 1.5) { bar.style.width = '30%'; bar.style.background = '#00ff88'; }
+                else if (r <= 3) { bar.style.width = '60%'; bar.style.background = '#ffcc00'; }
+                else { bar.style.width = '100%'; bar.style.background = '#ff4444'; }
             }
+        }
+
+        function share() {
+            const coin = document.getElementById('coin').value;
+            const lev = document.getElementById('resLev').innerText;
+            const text = 📊 МОЙ ТОРГОВЫЙ ПЛАН: ${coin}\n🛡 Плечо: ${lev}\n💰 Объем: ${document.getElementById('resPos').innerText}\n❌ Риск: ${document.getElementById('resLoss').innerText}\n\nРассчитано в Supreme Bot;
+            navigator.clipboard.writeText(text);
+            alert('План сделки скопирован! Можешь вставить его в канал или чат.');
         }
     </script>
 </body>
