@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Supreme Terminal 6.0</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Supreme Terminal 7.0</title>
     <style>
         body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px; width: 100%; max-width: 400px; box-sizing: border-box; }
@@ -21,6 +20,7 @@
         .main-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
         .copy-btn { width: 100%; padding: 14px; border-radius: 10px; border: 1px dashed #00c853; background: #002200; color: #00c853; cursor: pointer; margin-top: 10px; display: none; font-weight: bold; font-size: 15px; }
         
+        #error-msg { color: #ff3d00; text-align: center; margin-top: 10px; font-weight: bold; display: none; font-size: 14px; }
         #res { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
         .v-text { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; font-size: 15px; }
         
@@ -30,7 +30,7 @@
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 6.0</h2>
+    <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 7.0</h2>
     
     <div class="mode-switch">
         <button id="l-btn" class="mode-btn" style="background: #00c853; border-color: #00c853;" onclick="setMode('LONG')">LONG ↑</button>
@@ -60,6 +60,9 @@
     <input type="number" id="t2" placeholder="Тейк 2" inputmode="decimal">
     
     <button class="main-btn" onclick="runCalc()">АНАЛИЗИРОВАТЬ</button>
+    
+    <div id="error-msg">⚠️ Заполни Депозит, Риск, Вход и Стоп!</div>
+
     <button id="cp-btn" class="copy-btn" onclick="doCopy()">📋 СКОПИРОВАТЬ СИГНАЛ</button>
 
     <div id="res">
@@ -70,13 +73,7 @@
     <div id="tv-chart"></div>
 </div>
 
-<script src="https://s3.tradingview.com/tv.js"></script>
 <script>
-    // Расширяем окно Telegram на весь экран
-    if(window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.expand();
-    }
-
     let currentM = 'LONG';
     let txtToCopy = "";
 
@@ -94,18 +91,17 @@
     }
 
     function setRisk(val, btnId) {
-        // Устанавливаем значение в поле
         document.getElementById('risk').value = val;
-        // Сбрасываем цвета всех кнопок риска
         document.getElementById('rb1').style.background = '#222'; document.getElementById('rb1').style.color = '#ccc';
         document.getElementById('rb2').style.background = '#222'; document.getElementById('rb2').style.color = '#ccc';
         document.getElementById('rb3').style.background = '#222'; document.getElementById('rb3').style.color = '#ccc';
         document.getElementById('rb5').style.background = '#222'; document.getElementById('rb5').style.color = '#ccc';
-        // Закрашиваем нажатую
+        
         document.getElementById(btnId).style.background = '#fff'; document.getElementById(btnId).style.color = '#000';
     }
 
     function showChart() {
+        if(typeof TradingView === 'undefined') return; // Защита от сбоя
         let s = document.getElementById('coin').value.toUpperCase().trim();
         if(!s) return;
         if(!s.endsWith('USDT')) s += 'USDT';
@@ -116,6 +112,8 @@
     }
 
     function runCalc() {
+        document.getElementById('error-msg').style.display = 'none'; // Скрываем ошибку
+        
         const coin = document.getElementById('coin').value.toUpperCase() || "Монета";
         const bal = parseFloat(document.getElementById('bal').value);
         const riskP = parseFloat(document.getElementById('risk').value);
@@ -125,7 +123,7 @@
         const tp2 = parseFloat(document.getElementById('t2').value);
 
         if(!bal || !riskP || !ent || !st) { 
-            alert("Пожалуйста, заполните Депозит, Риск, Вход и Стоп!"); 
+            document.getElementById('error-msg').style.display = 'block'; 
             return; 
         }
 
@@ -133,7 +131,6 @@
         const sDist = Math.abs(ent - st);
         const sP = (sDist / ent * 100).toFixed(2);
         
-        // Лимит плеча 25х
         let lev = Math.floor(90 / sP);
         if(lev > 25) lev = 25;
         if(lev < 1) lev = 1;
@@ -160,23 +157,22 @@
             <b>Дистанция стопа:</b> ${sP}%
         `;
 
-        txtToCopy = 🚀 Сигнал: ${coin} (${currentM})\n\n +
-                    🔹 Вход: ${ent}\n +
-                    ⛔️ Стоп: ${st} (${sP}%)\n +
-                    🎯 Тейк 1: ${tp1 || '-'}\n +
-                    🎯 Тейк 2: ${tp2 || '-'}\n\n +
-                    ⚙️ Плечо: ${lev}x;
+        txtToCopy = 🚀 Сигнал: ${coin} (${currentM})\n\n🔹 Вход: ${ent}\n⛔️ Стоп: ${st} (${sP}%)\n🎯 Тейк 1: ${tp1 || '-'}\n🎯 Тейк 2: ${tp2 || '-'}\n\n⚙️ Плечо: ${lev}x;
 
         window.scrollTo(0, document.body.scrollHeight);
     }
 
     function doCopy() {
         navigator.clipboard.writeText(txtToCopy).then(() => {
-            alert("✅ Сигнал скопирован!");
-        }).catch(err => {
-            alert("Не удалось скопировать. Попробуйте обновить приложение.");
+            const btn = document.getElementById('cp-btn');
+            btn.innerText = "✅ СКОПИРОВАНО!";
+            setTimeout(() => { btn.innerText = "📋 СКОПИРОВАТЬ СИГНАЛ"; }, 2000);
         });
     }
 </script>
+
+<script async src="https://telegram.org/js/telegram-web-app.js"></script>
+<script async src="https://s3.tradingview.com/tv.js"></script>
+
 </body>
 </html>
