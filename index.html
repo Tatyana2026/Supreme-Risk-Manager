@@ -3,44 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Supreme Terminal 8.0</title>
+    <title>Supreme Terminal 10.0 PRO</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://s3.tradingview.com/tv.js"></script>
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px; width: 100%; max-width: 400px; box-sizing: border-box; }
+        
         .mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
-        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
+        
         input { width: 100%; padding: 14px; margin: 6px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: #555; }
+        
         .quick-risk { display: flex; gap: 8px; margin: 10px 0; }
-        .risk-btn { flex: 1; padding: 12px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .risk-btn { flex: 1; padding: 10px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+
         .main-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
         .copy-btn { width: 100%; padding: 14px; border-radius: 10px; border: 1px dashed #00c853; background: #002200; color: #00c853; cursor: pointer; margin-top: 10px; display: none; font-weight: bold; font-size: 15px; }
+        
         #error-msg { color: #ff3d00; text-align: center; margin-top: 10px; font-weight: bold; display: none; font-size: 14px; }
         #res { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
         .v-text { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; font-size: 15px; }
-        #tv-chart { width: 100%; height: 300px; margin-top: 15px; border-radius: 15px; border: 1px solid #333; display: none; }
-        #debug { color: yellow; font-size: 12px; margin-top: 20px; text-align: center; }
+        
+        #tv-chart { width: 100%; height: 350px; margin-top: 15px; border-radius: 15px; border: 1px solid #333; display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 8.0</h2>
+    <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 10.0</h2>
     
     <div class="mode-switch">
         <button id="l-btn" class="mode-btn" style="background: #00c853; border-color: #00c853;" onclick="setMode('LONG')">LONG ↑</button>
         <button id="s-btn" class="mode-btn" onclick="setMode('SHORT')">SHORT ↓</button>
     </div>
 
-    <input list="coin-list" id="coin" placeholder="Монета (напр. BTC)" onchange="showChart()">
+    <input list="coin-list" id="coin" placeholder="Монета (напр. BTC)" onchange="loadChart()">
     <datalist id="coin-list">
         <option value="BTC"> <option value="ETH"> <option value="SOL"> <option value="BNB"> <option value="XRP">
-        <option value="DOGE"> <option value="ADA"> <option value="AVAX"> <option value="LINK"> <option value="SUI">
-        <option value="PEPE"> <option value="NEAR"> <option value="APT"> <option value="ARB"> <option value="OP">
+        <option value="DOGE"> <option value="ADA"> <option value="SUI"> <option value="PEPE"> <option value="NEAR">
     </datalist>
 
-    <input type="number" id="bal" placeholder="Депозит (USDT)" inputmode="decimal">
+    <div id="tv-chart"></div>
+
+    <input type="number" id="bal" placeholder="Депозит (USDT)" inputmode="decimal" style="margin-top:15px;">
     
     <div class="quick-risk">
         <button class="risk-btn" id="rb1" onclick="setRisk(1, 'rb1')">1%</button>
@@ -55,9 +62,9 @@
     <input type="number" id="t1" placeholder="Тейк 1" inputmode="decimal">
     <input type="number" id="t2" placeholder="Тейк 2" inputmode="decimal">
     
-    <button class="main-btn" onclick="runCalc()">АНАЛИЗИРОВАТЬ</button>
+    <button class="main-btn" onclick="runCalc()">АНАЛИЗИРОВАТЬ СДЕЛКУ</button>
     
-    <div id="error-msg">⚠️ Заполни Депозит, Риск, Вход и Стоп!</div>
+    <div id="error-msg">⚠️ Заполните Депозит, Риск, Вход и Стоп!</div>
 
     <button id="cp-btn" class="copy-btn" onclick="doCopy()">📋 СКОПИРОВАТЬ СИГНАЛ</button>
 
@@ -65,61 +72,69 @@
         <div id="v-box" class="v-text"></div>
         <div id="out" style="font-size: 15px; line-height: 1.6;"></div>
     </div>
-
-    <div id="tv-chart"></div>
 </div>
 
-<div id="debug"></div>
-
 <script>
-    // Если произойдет ошибка - бот напишет ее желтым текстом внизу!
-    window.onerror = function(msg, url, line) {
-        document.getElementById('debug').innerHTML += "Ошибка: " + msg + " (строка " + line + ")<br>";
-    };
+    // Растягиваем окно Telegram
+    if(window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.expand();
+    }
 
     var currentM = 'LONG';
     var txtToCopy = "";
 
     function setMode(m) {
         currentM = m;
-        var lb = document.getElementById('l-btn');
-        var sb = document.getElementById('s-btn');
-        if(m === 'LONG') {
-            lb.style.background = '#00c853'; lb.style.borderColor = '#00c853';
-            sb.style.background = '#222'; sb.style.borderColor = '#444';
-        } else {
-            sb.style.background = '#ff3d00'; sb.style.borderColor = '#ff3d00';
-            lb.style.background = '#222'; lb.style.borderColor = '#444';
-        }
+        document.getElementById('l-btn').style.background = (m === 'LONG') ? '#00c853' : '#222';
+        document.getElementById('l-btn').style.borderColor = (m === 'LONG') ? '#00c853' : '#444';
+        
+        document.getElementById('s-btn').style.background = (m === 'SHORT') ? '#ff3d00' : '#222';
+        document.getElementById('s-btn').style.borderColor = (m === 'SHORT') ? '#ff3d00' : '#444';
     }
 
     function setRisk(val, btnId) {
         document.getElementById('risk').value = val;
-        
-        document.getElementById('rb1').style.background = '#222'; document.getElementById('rb1').style.color = '#ccc';
-        document.getElementById('rb2').style.background = '#222'; document.getElementById('rb2').style.color = '#ccc';
-        document.getElementById('rb3').style.background = '#222'; document.getElementById('rb3').style.color = '#ccc';
-        document.getElementById('rb5').style.background = '#222'; document.getElementById('rb5').style.color = '#ccc';
-        
-        document.getElementById(btnId).style.background = '#fff'; document.getElementById(btnId).style.color = '#000';
+        var btns = ['rb1', 'rb2', 'rb3', 'rb5'];
+        for(var i=0; i<btns.length; i++) {
+            document.getElementById(btns[i]).style.background = '#222';
+            document.getElementById(btns[i]).style.color = '#ccc';
+        }
+        document.getElementById(btnId).style.background = '#fff';
+        document.getElementById(btnId).style.color = '#000';
     }
 
-    function showChart() {
+    function loadChart() {
         if(typeof TradingView === 'undefined') return;
-        var s = document.getElementById('coin').value.toUpperCase().trim();
-        if(!s) return;
-        if(s.indexOf('USDT') === -1) s += 'USDT';
+        var coin = document.getElementById('coin').value.toUpperCase().trim();
+        if(!coin) return;
+        if(coin.indexOf('USDT') === -1) coin += 'USDT';
         
-        document.getElementById('tv-chart').style.display = 'block';
+        var chartDiv = document.getElementById('tv-chart');
+        chartDiv.style.display = 'block';
+        chartDiv.innerHTML = ''; // Очищаем старый график, чтобы не тормозило
+        
         new TradingView.widget({
-            "width": "100%", "height": 300, "symbol": s, "theme": "dark", "container_id": "tv-chart", "hide_top_toolbar": true
+            "width": "100%",
+            "height": 350,
+            "symbol": "BINANCE:" + coin,
+            "interval": "60",
+            "theme": "dark",
+            "style": "1",
+            "locale": "ru",
+            "container_id": "tv-chart",
+            "hide_top_toolbar": false,
+            "hide_side_toolbar": false, // Включил боковую панель для рисования линий!
+            "studies": [
+                "RSI@tv-basicstudies",
+                "MASimple@tv-basicstudies"
+            ]
         });
     }
 
     function runCalc() {
         document.getElementById('error-msg').style.display = 'none';
         
-        var coin = document.getElementById('coin').value.toUpperCase() || "Монета";
+        var coin = document.getElementById('coin').value.toUpperCase() || "ASSET";
         var bal = parseFloat(document.getElementById('bal').value);
         var riskP = parseFloat(document.getElementById('risk').value);
         var ent = parseFloat(document.getElementById('ent').value);
@@ -136,6 +151,7 @@
         var sDist = Math.abs(ent - st);
         var sP = (sDist / ent * 100).toFixed(2);
         
+        // Лимит плеча 25х
         var lev = Math.floor(90 / sP);
         if(lev > 25) lev = 25;
         if(lev < 1) lev = 1;
@@ -149,10 +165,10 @@
         var vBox = document.getElementById('v-box');
         if(rr >= 2.5) { 
             vBox.innerText = "✅ ХОРОШАЯ СДЕЛКА (RR 1:" + rr + ")"; 
-            vBox.style.color = "#00c853"; vBox.style.border = "1px solid #00c853"; vBox.style.background = "rgba(0, 200, 83, 0.1)";
+            vBox.style.color = "#00c853"; vBox.style.borderColor = "#00c853";
         } else { 
             vBox.innerText = "⚠️ РИСКОВАННО (RR 1:" + rr + ")"; 
-            vBox.style.color = "#ff3d00"; vBox.style.border = "1px solid #ff3d00"; vBox.style.background = "rgba(255, 61, 0, 0.1)";
+            vBox.style.color = "#ff3d00"; vBox.style.borderColor = "#ff3d00";
         }
 
         document.getElementById('out').innerHTML = "<b>Плечо:</b> " + lev + "x (Max 25x)<br>" +
@@ -162,16 +178,18 @@
 
         txtToCopy = "🚀 Сигнал: " + coin + " (" + currentM + ")\n\n🔹 Вход: " + ent + "\n⛔️ Стоп: " + st + " (" + sP + "%)\n🎯 Тейк 1: " + (tp1 || '-') + "\n🎯 Тейк 2: " + (tp2 || '-') + "\n\n⚙️ Плечо: " + lev + "x";
 
-        window.scrollTo(0, document.body.scrollHeight);
+        // Прокрутка вниз к результату
+        setTimeout(function() { window.scrollTo(0, document.body.scrollHeight); }, 100);
     }
 
     function doCopy() {
-        var el = document.createElement('textarea');
-        el.value = txtToCopy;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
+        // Универсальный метод копирования для всех телефонов
+        var tempInput = document.createElement("textarea");
+        tempInput.value = txtToCopy;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
         
         var btn = document.getElementById('cp-btn');
         btn.innerText = "✅ СКОПИРОВАНО!";
