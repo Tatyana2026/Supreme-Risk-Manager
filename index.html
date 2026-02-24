@@ -3,27 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Supreme Terminal 4.4</title>
+    <title>Supreme Terminal 5.0</title>
     <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        body { background-color: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px; width: 100%; max-width: 400px; box-sizing: border-box; }
-        
         .mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
         .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; }
-        
-        /* Цвета направлений */
         .btn-l.active { background: #00c853 !important; border-color: #00c853; }
         .btn-s.active { background: #ff3d00 !important; border-color: #ff3d00; }
-
-        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 16px; }
-        
-        /* Кнопки Риска */
+        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 16px; outline: none; }
         .quick-risk { display: flex; gap: 8px; margin: 10px 0; }
         .risk-btn { flex: 1; padding: 10px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; }
         .risk-btn.active { background: #fff !important; color: #000 !important; font-weight: bold; }
-
         .main-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
-        
+        .copy-btn { width: 100%; padding: 12px; border-radius: 10px; border: 1px dashed #555; background: #1a1a1a; color: #aaa; cursor: pointer; margin-top: 10px; font-size: 14px; display: none; }
         #tv-chart { width: 100%; height: 300px; margin-top: 15px; border-radius: 15px; border: 1px solid #333; display: none; }
         .res-block { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
         .v-text { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
@@ -34,7 +27,7 @@
 <body>
 
     <div class="card">
-        <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 4.4</h2>
+        <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 5.0</h2>
         
         <div class="mode-switch">
             <button id="l-btn" class="mode-btn btn-l active" onclick="setM('LONG')">LONG ↑</button>
@@ -42,7 +35,7 @@
         </div>
 
         <input type="text" id="coin" placeholder="Монета (BTC, SOL...)" onchange="loadChart()">
-        <input type="number" id="bal" placeholder="Депозит (USDT)">
+        <input type="number" id="bal" placeholder="Депозит (USDT)" inputmode="decimal">
         
         <div class="quick-risk">
             <button class="risk-btn" onclick="setR(1, this)">1%</button>
@@ -50,17 +43,19 @@
             <button class="risk-btn" onclick="setR(3, this)">3%</button>
             <button class="risk-btn" onclick="setR(5, this)">5%</button>
         </div>
-        <input type="number" id="risk" placeholder="Риск %">
+        <input type="number" id="risk" placeholder="Риск %" inputmode="decimal">
         
-        <input type="number" id="ent" placeholder="Вход">
-        <input type="number" id="st" placeholder="Стоп">
-        <input type="number" id="t2" placeholder="Тейк 2 (для RR)">
+        <input type="number" id="ent" placeholder="Вход" inputmode="decimal">
+        <input type="number" id="st" placeholder="Стоп" inputmode="decimal">
+        <input type="number" id="tp1" placeholder="Тейк 1" inputmode="decimal">
+        <input type="number" id="tp2" placeholder="Тейк 2" inputmode="decimal">
         
         <button class="main-btn" onclick="calc()">АНАЛИЗИРОВАТЬ</button>
+        <button id="copy-btn" class="copy-btn" onclick="copySignal()">📋 Копировать сигнал для канала</button>
 
         <div id="res" class="res-block">
             <div id="v-box" class="v-text"></div>
-            <div id="out"></div>
+            <div id="out" style="font-size: 14px; line-height: 1.5;"></div>
         </div>
 
         <div id="tv-chart"></div>
@@ -69,6 +64,7 @@
     <script src="https://s3.tradingview.com/tv.js"></script>
     <script>
         let mode = 'LONG';
+        let signalText = "";
 
         function setM(m) {
             mode = m;
@@ -83,51 +79,63 @@
         }
 
         function loadChart() {
-            let s = document.getElementById('coin').value.toUpperCase();
+            let s = document.getElementById('coin').value.toUpperCase().trim();
             if(!s) return;
             if(!s.endsWith('USDT')) s += 'USDT';
-            
             document.getElementById('tv-chart').style.display = 'block';
             new TradingView.widget({
-                "width": "100%", "height": 300, "symbol": s,
-                "interval": "60", "theme": "dark", "style": "1",
-                "locale": "ru", "container_id": "tv-chart", "hide_top_toolbar": true
+                "width": "100%", "height": 300, "symbol": s, "interval": "60", "theme": "dark", "container_id": "tv-chart", "hide_top_toolbar": true
             });
         }
 
         function calc() {
+            const coin = document.getElementById('coin').value.toUpperCase() || "Asset";
             const b = parseFloat(document.getElementById('bal').value);
             const r = parseFloat(document.getElementById('risk').value);
             const e = parseFloat(document.getElementById('ent').value);
             const s = parseFloat(document.getElementById('st').value);
-            const t = parseFloat(document.getElementById('t2').value);
+            const t1 = parseFloat(document.getElementById('tp1').value);
+            const t2 = parseFloat(document.getElementById('t2').value);
 
-            if(!b || !r || !e || !s) return alert("Заполни поля!");
+            if(!b || !r || !e || !s) return alert("Заполни Депозит, Риск, Вход и Стоп!");
 
             const rAmt = (b * (r/100)).toFixed(2);
             const sDist = Math.abs(e - s);
             const sP = (sDist / e * 100).toFixed(2);
-            const pSize = (rAmt / (sP/100)).toFixed(2);
-            const lev = Math.floor(90 / sP);
-            const rr = t ? (Math.abs(t - e) / sDist).toFixed(1) : 0;
+            let lev = Math.floor(90 / sP);
+            if (lev > 25) lev = 25;
 
-            const res = document.getElementById('res');
+            const rr = t2 ? (Math.abs(t2 - e) / sDist).toFixed(1) : 0;
+            const tp1P = t1 ? (Math.abs(t1 - e) / e * 100).toFixed(2) : 0;
+            const tp2P = t2 ? (Math.abs(t2 - e) / e * 100).toFixed(2) : 0;
+
+            document.getElementById('res').style.display = 'block';
+            document.getElementById('copy-btn').style.display = 'block';
+
             const v = document.getElementById('v-box');
-            res.style.display = 'block';
-
-            if(rr >= 2.5) {
-                v.innerText = "✅ ОТЛИЧНАЯ СДЕЛКА (RR 1:" + rr + ")";
-                v.className = "v-text up";
-            } else {
-                v.innerText = "⚠️ НИЗКИЙ ПРОФИТ (RR 1:" + rr + ")";
-                v.className = "v-text down";
-            }
+            if(rr >= 2.5) { v.innerText = "✅ ОТЛИЧНАЯ СДЕЛКА (RR 1:" + rr + ")"; v.className = "v-text up"; }
+            else { v.innerText = "⚠️ НИЗКИЙ ПРОФИТ (RR 1:" + rr + ")"; v.className = "v-text down"; }
 
             document.getElementById('out').innerHTML = `
-                <b>Потеря:</b> $${rAmt} | <b>Плечо:</b> ${lev > 100 ? 100 : lev}x<br>
-                <b>Объем:</b> $${pSize} | <b>Стоп:</b> ${sP}%
+                <b>Плечо:</b> ${lev}x | <b>Стоп:</b> ${sP}%<br>
+                <b>Т1:</b> +${tp1P}% | <b>Т2:</b> +${tp2P}%
             `;
+
+            // Формируем текст для копирования
+            signalText = 🚀 СИГНАЛ: ${coin} (${mode})\n\n +
+                         🔹 Вход: ${e}\n +
+                         ⛔️ Стоп-лосс: ${s} (${sP}%)\n +
+                         🎯 Тейк 1: ${t1 || '-'}\n +
+                         🎯 Тейк 2: ${t2 || '-'}\n\n +
+                         ⚙️ Плечо: ${lev}x (Max 25x);
+
             window.scrollTo(0, document.body.scrollHeight);
+        }
+
+        function copySignal() {
+            navigator.clipboard.writeText(signalText).then(() => {
+                alert("Текст сигнала скопирован!");
+            });
         }
     </script>
 </body>
