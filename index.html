@@ -6,16 +6,19 @@
     <title>Supreme Pro Terminal</title>
     <style>
         body { background-color: #000; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
-        .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; box-sizing: border-box; }
-        .mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
-        .mode-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; }
+        .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px; width: 100%; max-width: 400px; box-sizing: border-box; }
+        .mode-switch { display: flex; gap: 10px; margin-bottom: 12px; }
+        .mode-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; font-size: 14px; }
         .mode-btn.active-long { background: #00c853; border-color: #00c853; }
         .mode-btn.active-short { background: #ff3d00; border-color: #ff3d00; }
-        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 15px; }
+        .price-badge { font-size: 12px; color: #888; text-align: right; margin-top: -5px; margin-bottom: 5px; height: 15px; }
+        .quick-risk { display: flex; gap: 5px; margin-bottom: 10px; }
+        .risk-btn { flex: 1; padding: 5px; background: #333; border: none; color: #ccc; border-radius: 5px; font-size: 12px; cursor: pointer; }
         button.main-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        #chart-container { width: 100%; height: 350px; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 1px solid #333; display: none; }
-        .result { margin-top: 20px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
-        .verdict { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
+        #chart-container { width: 100%; height: 300px; margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #333; display: none; }
+        .result { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
+        .verdict { font-weight: bold; padding: 8px; border-radius: 8px; text-align: center; margin-bottom: 10px; font-size: 14px; }
         .good { background: rgba(0, 200, 83, 0.2); color: #00c853; }
         .bad { background: rgba(255, 61, 0, 0.2); color: #ff3d00; }
     </style>
@@ -23,25 +26,43 @@
 <body>
 
     <div class="card">
-        <h2 style="text-align:center">SUPREME TERMINAL</h2>
+        <h2 style="text-align:center; font-size: 18px; margin-top:0;">SUPREME TERMINAL 4.0</h2>
+        
         <div class="mode-switch">
             <button id="longBtn" class="mode-btn active-long" onclick="setMode('LONG')">LONG</button>
             <button id="shortBtn" class="mode-btn" onclick="setMode('SHORT')">SHORT</button>
         </div>
 
-        <input type="text" id="coin" placeholder="Монета (напр. BTC)" oninput="handleCoinInput()">
+        <input list="coin-list" id="coin" placeholder="Монета (напр. BTC)" oninput="handleInput()">
+        <datalist id="coin-list">
+            <option value="BTC"> <option value="ETH"> <option value="SOL"> <option value="BNB"> <option value="XRP">
+            <option value="DOGE"> <option value="ADA"> <option value="AVAX"> <option value="DOT"> <option value="LINK">
+            <option value="MATIC"> <option value="TRX"> <option value="LTC"> <option value="BCH"> <option value="SHIB">
+            <option value="APT"> <option value="SUI"> <option value="OP"> <option value="ARB"> <option value="NEAR">
+            <option value="PEPE"> <option value="RENDER"> <option value="TON"> <option value="STX"> <option value="TIA">
+        </datalist>
+        <div id="price-display" class="price-badge"></div>
+
         <input type="number" id="balance" placeholder="Депозит (USDT)">
+        
+        <div class="quick-risk">
+            <button class="risk-btn" onclick="setRisk(1)">1%</button>
+            <button class="risk-btn" onclick="setRisk(2)">2%</button>
+            <button class="risk-btn" onclick="setRisk(3)">3%</button>
+            <button class="risk-btn" onclick="setRisk(5)">5%</button>
+        </div>
         <input type="number" id="risk" placeholder="Риск (%)">
+        
         <input type="number" id="entry" placeholder="Вход">
         <input type="number" id="stop" placeholder="Стоп">
         <input type="number" id="tp1" placeholder="Тейк 1">
         <input type="number" id="tp2" placeholder="Тейк 2">
         
-        <button class="main-btn" onclick="calculate()">АНАЛИЗИРОВАТЬ СДЕЛКУ</button>
+        <button class="main-btn" onclick="calculate()">АНАЛИЗИРОВАТЬ</button>
 
         <div id="result" class="result">
             <div id="verdictBox" class="verdict"></div>
-            <div id="stats"></div>
+            <div id="stats" style="font-size: 14px; line-height: 1.6;"></div>
         </div>
 
         <div id="chart-container"></div>
@@ -58,30 +79,38 @@
             document.getElementById('shortBtn').className = mode === 'SHORT' ? 'mode-btn active-short' : 'mode-btn';
         }
 
-        function handleCoinInput() {
+        function setRisk(val) { document.getElementById('risk').value = val; }
+
+        function handleInput() {
             clearTimeout(timer);
-            timer = setTimeout(updateChart, 1000); // Обновляем график через 1 сек после ввода
+            timer = setTimeout(updateData, 800);
         }
 
-        function updateChart() {
-            let symbol = document.getElementById('coin').value.toUpperCase().replace('/', '');
+        async function updateData() {
+            let symbol = document.getElementById('coin').value.toUpperCase();
             if (!symbol) return;
             if (!symbol.endsWith('USDT')) symbol += 'USDT';
 
-            document.getElementById('chart-container').style.display = 'block';
+            // Подгружаем цену с Binance
+            try {
+                const response = await fetch(https://api.binance.com/api/v3/ticker/price?symbol=${symbol});
+                const data = await response.json();
+                if (data.price) {
+                    const p = parseFloat(data.price).toFixed(4);
+                    document.getElementById('price-display').innerText = Цена ${symbol}: $${p};
+                    // Если поле Вход пустое, подставляем текущую цену
+                    if (!document.getElementById('entry').value) {
+                        document.getElementById('entry').value = p;
+                    }
+                }
+            } catch (e) { console.log("Price error"); }
 
+            // Обновляем график
+            document.getElementById('chart-container').style.display = 'block';
             new TradingView.widget({
-                "width": "100%",
-                "height": 350,
-                "symbol": symbol,
-                "interval": "60",
-                "theme": "dark",
-                "style": "1",
-                "locale": "ru",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "hide_top_toolbar": false,
-                "container_id": "chart-container"
+                "width": "100%", "height": 300, "symbol": symbol,
+                "interval": "60", "theme": "dark", "style": "1",
+                "locale": "ru", "container_id": "chart-container"
             });
         }
 
