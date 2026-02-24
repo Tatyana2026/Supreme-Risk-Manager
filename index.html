@@ -3,63 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supreme Calc 2.0</title>
+    <title>Supreme Calc 3.0</title>
     <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .card { background: #111; border: 1px solid #333; border-radius: 15px; padding: 20px; width: 100%; max-width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; border-radius: 8px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .result { margin-top: 20px; text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; display: none; }
+        body { background-color: #000; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 10px; }
+        .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 20px; width: 100%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #fff; text-align: center; margin-bottom: 20px; font-size: 22px; letter-spacing: 1px; }
+        .mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
+        .mode-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; }
+        .mode-btn.active-long { background: #00c853; border-color: #00c853; }
+        .mode-btn.active-short { background: #ff3d00; border-color: #ff3d00; }
+        input { width: 100%; padding: 12px; margin: 6px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 15px; }
+        button.main-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px inset #333; }
+        .verdict { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
+        .good { background: rgba(0, 200, 83, 0.2); color: #00c853; }
+        .bad { background: rgba(255, 61, 0, 0.2); color: #ff3d00; }
+        .copy-btn { background: #333; color: #fff; margin-top: 10px; padding: 10px; width: 100%; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>SUPREME CALC 2.0</h2>
+        <h2>SUPREME CALC 3.0</h2>
+        <div class="mode-switch">
+            <button id="longBtn" class="mode-btn active-long" onclick="setMode('LONG')">LONG</button>
+            <button id="shortBtn" class="mode-btn" onclick="setMode('SHORT')">SHORT</button>
+        </div>
         <input type="text" id="coin" placeholder="Монета (напр. BTC/USDT)">
         <input type="number" id="balance" placeholder="Депозит (USDT)">
-        <input type="number" id="risk" placeholder="Риск (%)">
-        <input type="number" id="entry" placeholder="Вход">
-        <input type="number" id="stop" placeholder="Стоп">
+        <input type="number" id="risk" placeholder="Риск на сделку (%)">
+        <input type="number" id="entry" placeholder="Цена входа">
+        <input type="number" id="stop" placeholder="Цена стопа">
         <input type="number" id="tp1" placeholder="Тейк-профит 1">
         <input type="number" id="tp2" placeholder="Тейк-профит 2">
         
-        <button onclick="calculate()">РАССЧИТАТЬ</button>
+        <button class="main-btn" onclick="calculate()">АНАЛИЗИРОВАТЬ</button>
 
-        <div id="result" class="result"></div>
+        <div id="result" class="result">
+            <div id="verdictBox" class="verdict"></div>
+            <div id="stats"></div>
+            <button class="copy-btn" onclick="copySignal()">📋 Копировать сигнал для канала</button>
+        </div>
     </div>
 
     <script>
+        let currentMode = 'LONG';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('longBtn').className = mode === 'LONG' ? 'mode-btn active-long' : 'mode-btn';
+            document.getElementById('shortBtn').className = mode === 'SHORT' ? 'mode-btn active-short' : 'mode-btn';
+        }
+
         function calculate() {
-            const coin = document.getElementById('coin').value;
+            const coin = document.getElementById('coin').value || 'Asset';
             const balance = parseFloat(document.getElementById('balance').value);
             const riskPercent = parseFloat(document.getElementById('risk').value);
             const entry = parseFloat(document.getElementById('entry').value);
             const stop = parseFloat(document.getElementById('stop').value);
-            const tp1 = document.getElementById('tp1').value;
-            const tp2 = document.getElementById('tp2').value;
+            const tp1 = parseFloat(document.getElementById('tp1').value);
+            const tp2 = parseFloat(document.getElementById('tp2').value);
 
-            if (!balance || !riskPercent || !entry || !stop) {
-                alert("Заполни основные поля!");
-                return;
-            }
+            if (!balance || !riskPercent || !entry || !stop) return alert("Заполни данные!");
 
             const riskAmount = (balance * (riskPercent / 100)).toFixed(2);
-            const stopPercent = Math.abs(((entry - stop) / entry) * 100).toFixed(2);
+            const stopDist = Math.abs(entry - stop);
+            const stopPercent = (stopDist / entry * 100).toFixed(2);
             const positionSize = (riskAmount / (stopPercent / 100)).toFixed(2);
-            const leverage = Math.ceil(100 / stopPercent);
+            const leverage = Math.floor(90 / stopPercent); // Безопасное плечо
 
-            const resDiv = document.getElementById('result');
-            resDiv.style.display = 'block';
-            resDiv.innerHTML = `
-                <b>Монета:</b> ${coin.toUpperCase()}<br>
-                <b>Риск:</b> $${riskAmount}<br>
-                <b>Объем позиции:</b> $${positionSize}<br>
-                <b>Реком. плечо:</b> ${leverage}x<br>
-                <b>Стоп-лосс:</b> ${stopPercent}%<br>
-                <hr>
-                <b>ТП 1:</b> ${tp1}<br>
-                <b>ТП 2:</b> ${tp2}
+            // Анализ сделки
+            const tp2Dist = Math.abs(tp2 - entry);
+            const rr = (tp2Dist / stopDist).toFixed(1);
+            const verdictBox = document.getElementById('verdictBox');
+            
+            if (rr >= 3) {
+                verdictBox.innerText = "✅ ХОРОШАЯ СДЕЛКА (RR 1:" + rr + ")";
+                verdictBox.className = "verdict good";
+            } else {
+                verdictBox.innerText = "⚠️ РИСКОВАННО (RR 1:" + rr + ")";
+                verdictBox.className = "verdict bad";
+            }
+
+            const tp1P = Math.abs((tp1 - entry) / entry * 100).toFixed(2);
+            const tp2P = Math.abs((tp2 - entry) / entry * 100).toFixed(2);
+
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('stats').innerHTML = `
+                <b>Монета:</b> ${coin.toUpperCase()} (${currentMode})<br>
+                <b>Плечо:</b> ${leverage > 0 ? leverage : 1}x<br>
+                <b>Объем:</b> $${positionSize}<br>
+                <b>Стоп-лосс:</b> ${stopPercent}% ($${riskAmount})<hr>
+                <b>ТП 1:</b> ${tp1} (+${tp1P}%)<br>
+                <b>ТП 2:</b> ${tp2} (+${tp2P}%)
             `;
+        }
+
+        function copySignal() {
+            const text = document.getElementById('stats').innerText;
+            navigator.clipboard.writeText("📊 СИГНАЛ:\n" + text).then(() => alert("Скопировано!"));
         }
     </script>
 </body>
