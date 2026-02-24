@@ -1,43 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supreme Calc 2.0</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { border: 1px solid #333; padding: 20px; border-radius: 20px; background: #0a0a0a; }
-        input { width: 90%; padding: 10px; margin: 10px 0; background: #222; border: 1px solid #444; color: #fff; border-radius: 10px; }
-        button { width: 95%; padding: 15px; background: #fff; color: #000; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; }
-        #res { margin-top: 20px; display: none; text-align: left; border-top: 1px solid #333; padding-top: 10px; }
+        body { background-color: #000; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .card { background: #111; border: 1px solid #333; border-radius: 15px; padding: 20px; width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; border-radius: 8px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .result { margin-top: 20px; text-align: left; background: #1a1a1a; padding: 15px; border-radius: 10px; display: none; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h3>SUPREME CALC 2.0</h3>
-        <input type="number" id="b" placeholder="Депозит (USDT)">
-        <input type="number" id="r" placeholder="Риск (%)">
-        <input type="number" id="e" placeholder="Вход">
-        <input type="number" id="s" placeholder="Стоп">
-        <button onclick="calc()">РАССЧИТАТЬ</button>
-        <div id="res">
-            <p>Объем: <b id="p"></b></p>
-            <p>Плечо: <b id="l"></b></p>
-        </div>
+    <div class="card">
+        <h2>SUPREME CALC 2.0</h2>
+        <input type="text" id="coin" placeholder="Монета (напр. BTC/USDT)">
+        <input type="number" id="balance" placeholder="Депозит (USDT)">
+        <input type="number" id="risk" placeholder="Риск (%)">
+        <input type="number" id="entry" placeholder="Вход">
+        <input type="number" id="stop" placeholder="Стоп">
+        <input type="number" id="tp1" placeholder="Тейк-профит 1">
+        <input type="number" id="tp2" placeholder="Тейк-профит 2">
+        
+        <button onclick="calculate()">РАССЧИТАТЬ</button>
+
+        <div id="result" class="result"></div>
     </div>
+
     <script>
-        function calc() {
-            let b = document.getElementById('b').value;
-            let r = document.getElementById('r').value;
-            let e = document.getElementById('e').value;
-            let s = document.getElementById('s').value;
-            if(b && r && e && s) {
-                let diff = Math.abs(e - s) / e;
-                let pos = (b * (r/100)) / diff;
-                let lev = Math.floor(1 / (diff * 1.5));
-                document.getElementById('res').style.display = 'block';
-                document.getElementById('p').innerText = pos.toFixed(0) + ' USDT';
-                document.getElementById('l').innerText = (lev > 125 ? 125 : lev) + 'x';
+        function calculate() {
+            const coin = document.getElementById('coin').value;
+            const balance = parseFloat(document.getElementById('balance').value);
+            const riskPercent = parseFloat(document.getElementById('risk').value);
+            const entry = parseFloat(document.getElementById('entry').value);
+            const stop = parseFloat(document.getElementById('stop').value);
+            const tp1 = document.getElementById('tp1').value;
+            const tp2 = document.getElementById('tp2').value;
+
+            if (!balance || !riskPercent || !entry || !stop) {
+                alert("Заполни основные поля!");
+                return;
             }
+
+            const riskAmount = (balance * (riskPercent / 100)).toFixed(2);
+            const stopPercent = Math.abs(((entry - stop) / entry) * 100).toFixed(2);
+            const positionSize = (riskAmount / (stopPercent / 100)).toFixed(2);
+            const leverage = Math.ceil(100 / stopPercent);
+
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+            resDiv.innerHTML = `
+                <b>Монета:</b> ${coin.toUpperCase()}<br>
+                <b>Риск:</b> $${riskAmount}<br>
+                <b>Объем позиции:</b> $${positionSize}<br>
+                <b>Реком. плечо:</b> ${leverage}x<br>
+                <b>Стоп-лосс:</b> ${stopPercent}%<br>
+                <hr>
+                <b>ТП 1:</b> ${tp1}<br>
+                <b>ТП 2:</b> ${tp2}
+            `;
         }
     </script>
 </body>
