@@ -3,160 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Supreme Terminal 4.3</title>
+    <title>Supreme Terminal 4.4</title>
     <style>
-        body { background-color: #000; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
+        body { background-color: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; }
         .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px; width: 100%; max-width: 400px; box-sizing: border-box; }
         
-        /* Переключатель LONG/SHORT */
-        .mode-switch { display: flex; gap: 10px; margin-bottom: 12px; }
-        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .active-long { background: #00c853 !important; border-color: #00c853 !important; box-shadow: 0 0 10px rgba(0,200,83,0.4); }
-        .active-short { background: #ff3d00 !important; border-color: #ff3d00 !important; box-shadow: 0 0 10px rgba(255,61,0,0.4); }
+        .mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
+        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; }
+        
+        /* Цвета направлений */
+        .btn-l.active { background: #00c853 !important; border-color: #00c853; }
+        .btn-s.active { background: #ff3d00 !important; border-color: #ff3d00; }
 
-        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 16px; outline: none; }
-        .price-badge { font-size: 12px; color: #00c853; text-align: right; margin-bottom: 5px; height: 15px; font-weight: bold; }
-
+        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 16px; }
+        
         /* Кнопки Риска */
         .quick-risk { display: flex; gap: 8px; margin: 10px 0; }
-        .risk-btn { flex: 1; padding: 10px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 8px; font-size: 13px; cursor: pointer; transition: 0.2s; }
-        .risk-btn.selected { background: #fff !important; color: #000 !important; border-color: #fff !important; font-weight: bold; }
+        .risk-btn { flex: 1; padding: 10px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; }
+        .risk-btn.active { background: #fff !important; color: #000 !important; font-weight: bold; }
 
-        button.main-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
-        #chart-container { width: 100%; height: 300px; margin-top: 15px; border-radius: 15px; overflow: hidden; border: 1px solid #333; display: none; }
+        .main-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
         
-        .result { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
-        .verdict { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
-        .good { background: rgba(0, 200, 83, 0.2); color: #00c853; border: 1px solid #00c853; }
-        .bad { background: rgba(255, 61, 0, 0.2); color: #ff3d00; border: 1px solid #ff3d00; }
+        #tv-chart { width: 100%; height: 300px; margin-top: 15px; border-radius: 15px; border: 1px solid #333; display: none; }
+        .res-block { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
+        .v-text { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
+        .up { color: #00c853; border: 1px solid #00c853; }
+        .down { color: #ff3d00; border: 1px solid #ff3d00; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2 style="text-align:center; font-size: 18px; margin-top:0;">SUPREME TERMINAL 4.3</h2>
+        <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 4.4</h2>
         
         <div class="mode-switch">
-            <button id="longBtn" class="mode-btn active-long" onclick="setMode('LONG')">LONG ↑</button>
-            <button id="shortBtn" class="mode-btn" onclick="setMode('SHORT')">SHORT ↓</button>
+            <button id="l-btn" class="mode-btn btn-l active" onclick="setM('LONG')">LONG ↑</button>
+            <button id="s-btn" class="mode-btn btn-s" onclick="setM('SHORT')">SHORT ↓</button>
         </div>
 
-        <input list="coin-list" id="coin" placeholder="Введите монету (напр. SOL)" oninput="handleInput()">
-        <datalist id="coin-list">
-            <option value="BTC"> <option value="ETH"> <option value="SOL"> <option value="BNB"> <option value="XRP">
-            <option value="DOGE"> <option value="AVAX"> <option value="SUI"> <option value="PEPE"> <option value="NEAR">
-        </datalist>
-        <div id="price-display" class="price-badge"></div>
-
-        <input type="number" id="balance" placeholder="Депозит (USDT)" inputmode="decimal">
+        <input type="text" id="coin" placeholder="Монета (BTC, SOL...)" onchange="loadChart()">
+        <input type="number" id="bal" placeholder="Депозит (USDT)">
         
         <div class="quick-risk">
-            <button class="risk-btn" onclick="setRisk(1, this)">1%</button>
-            <button class="risk-btn" onclick="setRisk(2, this)">2%</button>
-            <button class="risk-btn" onclick="setRisk(3, this)">3%</button>
-            <button class="risk-btn" onclick="setRisk(5, this)">5%</button>
+            <button class="risk-btn" onclick="setR(1, this)">1%</button>
+            <button class="risk-btn" onclick="setR(2, this)">2%</button>
+            <button class="risk-btn" onclick="setR(3, this)">3%</button>
+            <button class="risk-btn" onclick="setR(5, this)">5%</button>
         </div>
-        <input type="number" id="risk" placeholder="Риск %" inputmode="decimal">
+        <input type="number" id="risk" placeholder="Риск %">
         
-        <input type="number" id="entry" placeholder="Цена входа" inputmode="decimal">
-        <input type="number" id="stop" placeholder="Цена стопа" inputmode="decimal">
-        <input type="number" id="tp1" placeholder="Тейк 1" inputmode="decimal">
-        <input type="number" id="tp2" placeholder="Тейк 2" inputmode="decimal">
+        <input type="number" id="ent" placeholder="Вход">
+        <input type="number" id="st" placeholder="Стоп">
+        <input type="number" id="t2" placeholder="Тейк 2 (для RR)">
         
-        <button class="main-btn" onclick="calculate()">АНАЛИЗИРОВАТЬ</button>
+        <button class="main-btn" onclick="calc()">АНАЛИЗИРОВАТЬ</button>
 
-        <div id="result" class="result">
-            <div id="verdictBox" class="verdict"></div>
-            <div id="stats" style="font-size: 15px; line-height: 1.6;"></div>
+        <div id="res" class="res-block">
+            <div id="v-box" class="v-text"></div>
+            <div id="out"></div>
         </div>
 
-        <div id="chart-container"></div>
+        <div id="tv-chart"></div>
     </div>
 
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        let currentMode = 'LONG';
-        let timer;
+        let mode = 'LONG';
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.getElementById('longBtn').classList.toggle('active-long', mode === 'LONG');
-            document.getElementById('shortBtn').classList.toggle('active-short', mode === 'SHORT');
+        function setM(m) {
+            mode = m;
+            document.getElementById('l-btn').classList.toggle('active', m === 'LONG');
+            document.getElementById('s-btn').classList.toggle('active', m === 'SHORT');
         }
 
-        function setRisk(val, btn) { 
-            document.getElementById('risk').value = val;
-            document.querySelectorAll('.risk-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
+        function setR(v, b) {
+            document.getElementById('risk').value = v;
+            document.querySelectorAll('.risk-btn').forEach(btn => btn.classList.remove('active'));
+            b.classList.add('active');
         }
 
-        function handleInput() {
-            clearTimeout(timer);
-            timer = setTimeout(updateData, 800);
-        }
-
-        async function updateData() {
-            let symbol = document.getElementById('coin').value.toUpperCase().trim();
-            if (!symbol) return;
-            if (!symbol.endsWith('USDT')) symbol += 'USDT';
-
-            try {
-                const response = await fetch(https://api.binance.com/api/v3/ticker/price?symbol=${symbol});
-                const data = await response.json();
-                if (data.price) {
-                    const p = parseFloat(data.price).toFixed(4);
-                    document.getElementById('price-display').innerText = Живая цена: $${p};
-                    if (!document.getElementById('entry').value) document.getElementById('entry').value = p;
-                }
-            } catch (e) { }
-
-            document.getElementById('chart-container').style.display = 'block';
+        function loadChart() {
+            let s = document.getElementById('coin').value.toUpperCase();
+            if(!s) return;
+            if(!s.endsWith('USDT')) s += 'USDT';
+            
+            document.getElementById('tv-chart').style.display = 'block';
             new TradingView.widget({
-                "width": "100%", "height": 300, "symbol": symbol,
+                "width": "100%", "height": 300, "symbol": s,
                 "interval": "60", "theme": "dark", "style": "1",
-                "locale": "ru", "container_id": "chart-container", "hide_top_toolbar": true
+                "locale": "ru", "container_id": "tv-chart", "hide_top_toolbar": true
             });
         }
 
-        function calculate() {
-            const balance = parseFloat(document.getElementById('balance').value);
-            const riskP = parseFloat(document.getElementById('risk').value);
-            const entry = parseFloat(document.getElementById('entry').value);
-            const stop = parseFloat(document.getElementById('stop').value);
-            const tp2 = parseFloat(document.getElementById('tp2').value);
+        function calc() {
+            const b = parseFloat(document.getElementById('bal').value);
+            const r = parseFloat(document.getElementById('risk').value);
+            const e = parseFloat(document.getElementById('ent').value);
+            const s = parseFloat(document.getElementById('st').value);
+            const t = parseFloat(document.getElementById('t2').value);
 
-            if (!balance || !riskP || !entry || !stop) {
-                alert("Заполни все поля!");
-                return;
-            }
+            if(!b || !r || !e || !s) return alert("Заполни поля!");
 
-            const riskAmt = (balance * (riskP / 100)).toFixed(2);
-            const stopDist = Math.abs(entry - stop);
-            const stopP = (stopDist / entry * 100).toFixed(2);
-            const posSize = (riskAmt / (stopP / 100)).toFixed(2);
-            const lev = Math.floor(95 / stopP);
+            const rAmt = (b * (r/100)).toFixed(2);
+            const sDist = Math.abs(e - s);
+            const sP = (sDist / e * 100).toFixed(2);
+            const pSize = (rAmt / (sP/100)).toFixed(2);
+            const lev = Math.floor(90 / sP);
+            const rr = t ? (Math.abs(t - e) / sDist).toFixed(1) : 0;
 
-            const rr = tp2 ? (Math.abs(tp2 - entry) / stopDist).toFixed(1) : "0";
-            
-            const vBox = document.getElementById('verdictBox');
-            document.getElementById('result').style.display = 'block';
+            const res = document.getElementById('res');
+            const v = document.getElementById('v-box');
+            res.style.display = 'block';
 
-            if (rr >= 2.5) {
-                vBox.innerText = "✅ ОТЛИЧНАЯ СДЕЛКА (RR 1:" + rr + ")";
-                vBox.className = "verdict good";
+            if(rr >= 2.5) {
+                v.innerText = "✅ ОТЛИЧНАЯ СДЕЛКА (RR 1:" + rr + ")";
+                v.className = "v-text up";
             } else {
-                vBox.innerText = "⚠️ НИЗКИЙ ПРОФИТ (RR 1:" + rr + ")";
-                vBox.className = "verdict bad";
+                v.innerText = "⚠️ НИЗКИЙ ПРОФИТ (RR 1:" + rr + ")";
+                v.className = "v-text down";
             }
 
-            document.getElementById('stats').innerHTML = `
-                <b>Направление:</b> ${currentMode}<br>
-                <b>Потеря при стопе:</b> $${riskAmt}<br>
-                <b>Размер позиции:</b> $${posSize}<br>
-                <b>Реком. плечо:</b> ${lev > 100 ? 100 : lev}x<br>
-                <b>Дистанция стопа:</b> ${stopP}%
+            document.getElementById('out').innerHTML = `
+                <b>Потеря:</b> $${rAmt} | <b>Плечо:</b> ${lev > 100 ? 100 : lev}x<br>
+                <b>Объем:</b> $${pSize} | <b>Стоп:</b> ${sP}%
             `;
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            window.scrollTo(0, document.body.scrollHeight);
         }
     </script>
 </body>
