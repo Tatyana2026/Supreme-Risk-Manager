@@ -3,64 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Supreme Terminal 5.1</title>
+    <title>Supreme Terminal 6.0</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         .card { background: #111; border: 1px solid #333; border-radius: 20px; padding: 15px; width: 100%; max-width: 400px; box-sizing: border-box; }
         
         .mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
-        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; }
-        .btn-l.active { background: #00c853 !important; }
-        .btn-s.active { background: #ff3d00 !important; }
-
-        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 16px; outline: none; }
+        .mode-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #222; color: #fff; cursor: pointer; font-weight: bold; font-size: 16px; }
+        
+        input { width: 100%; padding: 14px; margin: 6px 0; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: #fff; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: #555; }
         
         .quick-risk { display: flex; gap: 8px; margin: 10px 0; }
-        .risk-btn { flex: 1; padding: 10px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; }
-        .risk-btn.active { background: #fff !important; color: #000 !important; font-weight: bold; }
+        .risk-btn { flex: 1; padding: 12px; background: #222; border: 1px solid #444; color: #ccc; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
 
         .main-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: #fff; color: #000; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 16px; }
-        .copy-btn { width: 100%; padding: 12px; border-radius: 10px; border: 1px dashed #555; background: #1a1a1a; color: #00c853; cursor: pointer; margin-top: 10px; display: none; font-weight: bold; }
+        .copy-btn { width: 100%; padding: 14px; border-radius: 10px; border: 1px dashed #00c853; background: #002200; color: #00c853; cursor: pointer; margin-top: 10px; display: none; font-weight: bold; font-size: 15px; }
         
         #res { margin-top: 15px; padding: 15px; border-radius: 12px; display: none; background: #1a1a1a; border: 1px solid #333; }
-        .v-text { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; border: 1px solid; }
-        .up { color: #00c853; border-color: #00c853; }
-        .down { color: #ff3d00; border-color: #ff3d00; }
+        .v-text { font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; font-size: 15px; }
+        
         #tv-chart { width: 100%; height: 300px; margin-top: 15px; border-radius: 15px; border: 1px solid #333; display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 5.1</h2>
+    <h2 style="text-align:center; font-size: 18px; margin: 0 0 15px 0;">SUPREME TERMINAL 6.0</h2>
     
     <div class="mode-switch">
-        <button id="l-btn" class="mode-btn btn-l active" onclick="setMode('LONG')">LONG ↑</button>
-        <button id="s-btn" class="mode-btn btn-s" onclick="setMode('SHORT')">SHORT ↓</button>
+        <button id="l-btn" class="mode-btn" style="background: #00c853; border-color: #00c853;" onclick="setMode('LONG')">LONG ↑</button>
+        <button id="s-btn" class="mode-btn" onclick="setMode('SHORT')">SHORT ↓</button>
     </div>
 
-    <input type="text" id="coin" placeholder="Монета (напр. BTC)" onchange="showChart()">
-    <input type="number" id="bal" placeholder="Депозит (USDT)">
+    <input list="coin-list" id="coin" placeholder="Монета (напр. BTC)" onchange="showChart()">
+    <datalist id="coin-list">
+        <option value="BTC"> <option value="ETH"> <option value="SOL"> <option value="BNB"> <option value="XRP">
+        <option value="DOGE"> <option value="ADA"> <option value="AVAX"> <option value="LINK"> <option value="SUI">
+        <option value="PEPE"> <option value="NEAR"> <option value="APT"> <option value="ARB"> <option value="OP">
+    </datalist>
+
+    <input type="number" id="bal" placeholder="Депозит (USDT)" inputmode="decimal">
     
     <div class="quick-risk">
-        <button class="risk-btn" onclick="setRisk(1, this)">1%</button>
-        <button class="risk-btn" onclick="setRisk(2, this)">2%</button>
-        <button class="risk-btn" onclick="setRisk(3, this)">3%</button>
-        <button class="risk-btn" onclick="setRisk(5, this)">5%</button>
+        <button class="risk-btn" id="rb1" onclick="setRisk(1, 'rb1')">1%</button>
+        <button class="risk-btn" id="rb2" onclick="setRisk(2, 'rb2')">2%</button>
+        <button class="risk-btn" id="rb3" onclick="setRisk(3, 'rb3')">3%</button>
+        <button class="risk-btn" id="rb5" onclick="setRisk(5, 'rb5')">5%</button>
     </div>
-    <input type="number" id="risk" placeholder="Риск %">
+    <input type="number" id="risk" placeholder="Риск %" inputmode="decimal">
     
-    <input type="number" id="ent" placeholder="Вход">
-    <input type="number" id="st" placeholder="Стоп">
-    <input type="number" id="t1" placeholder="Тейк 1">
-    <input type="number" id="t2" placeholder="Тейк 2">
+    <input type="number" id="ent" placeholder="Вход" inputmode="decimal">
+    <input type="number" id="st" placeholder="Стоп" inputmode="decimal">
+    <input type="number" id="t1" placeholder="Тейк 1" inputmode="decimal">
+    <input type="number" id="t2" placeholder="Тейк 2" inputmode="decimal">
     
     <button class="main-btn" onclick="runCalc()">АНАЛИЗИРОВАТЬ</button>
-    <button id="cp-btn" class="copy-btn" onclick="doCopy()">📋 КОПИРОВАТЬ СИГНАЛ</button>
+    <button id="cp-btn" class="copy-btn" onclick="doCopy()">📋 СКОПИРОВАТЬ СИГНАЛ</button>
 
     <div id="res">
         <div id="v-box" class="v-text"></div>
-        <div id="out" style="font-size: 14px; line-height: 1.6;"></div>
+        <div id="out" style="font-size: 15px; line-height: 1.6;"></div>
     </div>
 
     <div id="tv-chart"></div>
@@ -68,19 +72,37 @@
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 <script>
+    // Расширяем окно Telegram на весь экран
+    if(window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.expand();
+    }
+
     let currentM = 'LONG';
     let txtToCopy = "";
 
     function setMode(m) {
         currentM = m;
-        document.getElementById('l-btn').classList.toggle('active', m === 'LONG');
-        document.getElementById('s-btn').classList.toggle('active', m === 'SHORT');
+        let lb = document.getElementById('l-btn');
+        let sb = document.getElementById('s-btn');
+        if(m === 'LONG') {
+            lb.style.background = '#00c853'; lb.style.borderColor = '#00c853';
+            sb.style.background = '#222'; sb.style.borderColor = '#444';
+        } else {
+            sb.style.background = '#ff3d00'; sb.style.borderColor = '#ff3d00';
+            lb.style.background = '#222'; lb.style.borderColor = '#444';
+        }
     }
 
-    function setRisk(v, b) {
-        document.getElementById('risk').value = v;
-        document.querySelectorAll('.risk-btn').forEach(btn => btn.classList.remove('active'));
-        b.classList.add('active');
+    function setRisk(val, btnId) {
+        // Устанавливаем значение в поле
+        document.getElementById('risk').value = val;
+        // Сбрасываем цвета всех кнопок риска
+        document.getElementById('rb1').style.background = '#222'; document.getElementById('rb1').style.color = '#ccc';
+        document.getElementById('rb2').style.background = '#222'; document.getElementById('rb2').style.color = '#ccc';
+        document.getElementById('rb3').style.background = '#222'; document.getElementById('rb3').style.color = '#ccc';
+        document.getElementById('rb5').style.background = '#222'; document.getElementById('rb5').style.color = '#ccc';
+        // Закрашиваем нажатую
+        document.getElementById(btnId).style.background = '#fff'; document.getElementById(btnId).style.color = '#000';
     }
 
     function showChart() {
@@ -94,7 +116,7 @@
     }
 
     function runCalc() {
-        const coin = document.getElementById('coin').value.toUpperCase() || "ASSET";
+        const coin = document.getElementById('coin').value.toUpperCase() || "Монета";
         const bal = parseFloat(document.getElementById('bal').value);
         const riskP = parseFloat(document.getElementById('risk').value);
         const ent = parseFloat(document.getElementById('ent').value);
@@ -102,44 +124,58 @@
         const tp1 = parseFloat(document.getElementById('t1').value);
         const tp2 = parseFloat(document.getElementById('t2').value);
 
-        if(!bal || !riskP || !ent || !st) { alert("Заполните основные поля!"); return; }
+        if(!bal || !riskP || !ent || !st) { 
+            alert("Пожалуйста, заполните Депозит, Риск, Вход и Стоп!"); 
+            return; 
+        }
 
         const rAmt = (bal * (riskP/100)).toFixed(2);
         const sDist = Math.abs(ent - st);
         const sP = (sDist / ent * 100).toFixed(2);
         
+        // Лимит плеча 25х
         let lev = Math.floor(90 / sP);
         if(lev > 25) lev = 25;
         if(lev < 1) lev = 1;
 
-        const pSize = (rAmt / (sDist / ent)).toFixed(2);
+        const pSize = (rAmt / (sP / 100)).toFixed(2);
         const rr = tp2 ? (Math.abs(tp2 - ent) / sDist).toFixed(1) : "0";
 
         document.getElementById('res').style.display = 'block';
         document.getElementById('cp-btn').style.display = 'block';
         
         const vBox = document.getElementById('v-box');
-        if(rr >= 2.5) { vBox.innerText = "✅ RR 1:" + rr + " (ОТЛИЧНО)"; vBox.className = "v-text up"; }
-        else { vBox.innerText = "⚠️ RR 1:" + rr + " (РИСКОВАННО)"; vBox.className = "v-text down"; }
+        if(rr >= 2.5) { 
+            vBox.innerText = "✅ ХОРОШАЯ СДЕЛКА (RR 1:" + rr + ")"; 
+            vBox.style.color = "#00c853"; vBox.style.border = "1px solid #00c853"; vBox.style.background = "rgba(0, 200, 83, 0.1)";
+        } else { 
+            vBox.innerText = "⚠️ РИСКОВАННО (RR 1:" + rr + ")"; 
+            vBox.style.color = "#ff3d00"; vBox.style.border = "1px solid #ff3d00"; vBox.style.background = "rgba(255, 61, 0, 0.1)";
+        }
 
         document.getElementById('out').innerHTML = `
-            <b>Плечо:</b> ${lev}x (Limit 25x)<br>
-            <b>Позиция:</b> $${pSize}<br>
-            <b>Риск:</b> $${rAmt} (${riskP}%)<br>
-            <b>Стоп:</b> ${sP}%
+            <b>Плечо:</b> ${lev}x (Max 25x)<br>
+            <b>Объем позиции:</b> $${pSize}<br>
+            <b>Риск в $:</b> $${rAmt}<br>
+            <b>Дистанция стопа:</b> ${sP}%
         `;
 
-        txtToCopy = 🚀 SIGNAL: ${coin} | ${currentM}\n\n +
-                    📍 Entry: ${ent}\n +
-                    🛡 Stop: ${st} (${sP}%)\n +
-                    🎯 Take 1: ${tp1 || 'N/A'}\n +
-                    🎯 Take 2: ${tp2 || 'N/A'}\n\n +
-                    ⚙️ Leverage: ${lev}x;
+        txtToCopy = 🚀 Сигнал: ${coin} (${currentM})\n\n +
+                    🔹 Вход: ${ent}\n +
+                    ⛔️ Стоп: ${st} (${sP}%)\n +
+                    🎯 Тейк 1: ${tp1 || '-'}\n +
+                    🎯 Тейк 2: ${tp2 || '-'}\n\n +
+                    ⚙️ Плечо: ${lev}x;
+
+        window.scrollTo(0, document.body.scrollHeight);
     }
 
     function doCopy() {
-        navigator.clipboard.writeText(txtToCopy);
-        alert("Скопировано!");
+        navigator.clipboard.writeText(txtToCopy).then(() => {
+            alert("✅ Сигнал скопирован!");
+        }).catch(err => {
+            alert("Не удалось скопировать. Попробуйте обновить приложение.");
+        });
     }
 </script>
 </body>
